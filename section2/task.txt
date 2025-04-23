@@ -1,0 +1,34 @@
+db.patients.insertMany([
+{
+  "firstName": "Carlos",
+  "lastName": "Araujo",
+  "age": 31,
+  "history": [
+    {"disease": "test"}
+  ]
+},
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "age": 20,
+  "history": [{ "disease": "test" }]
+},
+{
+  "firstName": "jane",
+  "lastName": "Doe",
+  "age": 10,
+  "history": [
+    {"disease": "cold"}
+  ]
+}
+])
+
+db.patients.updateOne({_id: ObjectId('680974ce851b17b5a0ae813c')}, {$set: {"firstName": "John",
+  "lastName": "New",
+  "age": 25,
+  "history": [{ "disease": "fever" }]}})
+
+  db.patients.find({age: {$gt: 30}})
+
+db.patients.deleteOne({history: {disease: "cold"}})
+// db.patients.deleteOne({"history.disease": "cold"})
