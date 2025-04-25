@@ -1,0 +1,14 @@
+db.users.insertMany([
+  {
+    "name": "Carlos",
+    "age": 31,
+    "email": "test@test.com",
+  },
+  {
+    "name": "Orlando",
+    "age": 31,
+    "email": "test2@test.com"
+  }
+])
+
+db.posts.insertOne({title: 'first post', text: 'sample text', tags: ['new', 'tech'], creator: ObjectId('680aaba7851b17b5a0ae8150'), comments: [{text: 'like', author: ObjectId('680aaba7851b17b5a0ae8151')}]})

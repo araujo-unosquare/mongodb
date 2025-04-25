@@ -1,0 +1,61 @@
+db.products.insertOne({name: "book", price: 10, details: null})
+db.products.insertOne({name: "book 2", price: 15, details: null})
+db.products.insertOne({name: "computer", price: 1500, details: {cpu: "intel"}})
+
+-------
+data types
+---------
+Text
+Boolean
+Number(Integer, NumberLong, NumberDecimal)
+ObjectId
+ISODate
+Timestamp
+Embedded document
+Array
+
+
+use companyData
+db.companies.insertOne({name: "Fresh Appples Inc", isStartup: true, employees: 33, funding: 12345678901234567890, details: {ceo: "Carlos"}, tags: ["test"], foundingDate: new Date(), instertedAt: new Timestamp()})
+
+
+
+-----
+one to one
+-----
+use hospital
+db.patients.insertOne({name: "Carlos", age: 31, diseaseSummary: "summary1"})
+db.diseaseSummaries.insertOne({_id:"summary1", diseases: ["cold"]})
+var dsid = db.patients.findOne().diseaseSummary
+db.patients.insertOne({name: "Carlos", age: 31, diseaseSummary: {diseases: ["cold"]}})
+
+
+use carData
+db.persons.insertOne({name: "Carlos", age: 31, salary: 10000})
+db.cars.insertOne({model: "BMW", price: 5000, owner:  ObjectId('680a81ce851b17b5a0ae8144')})
+
+-----
+one to many
+-----
+
+db.questionThreads.insertOne({creator: "carlos", question: "test", answers: [{text: "answer1"}, {text: "answer2"}]})
+
+
+db.cities.insertOne({name: "nyc"})
+db.citizens.insertMany([{name: "carlos", cityId: ObjectId('680a8357851b17b5a0ae8147')}, {name: "orlando", cityId: ObjectId('680a8357851b17b5a0ae8147')}])
+
+
+-------
+many to many
+-------
+
+db.customers.insertOne({name: 'carlos'})
+db.products.insertOne({name: 'book'})
+db.customers.updateOne({}, {$set: {orders: [{productId: ObjectId('680a84ad851b17b5a0ae814c'), quantity: 5}]}})
+db.customers.updateOne({}, {$set: {orders: [{name: 'book', quantity: 5}]}})
+
+db.books.insertOne({title: 'book'})
+db.authors.insertMany([{name: 'carlos'}, {name: 'orlando'}])
+db.books.updateOne({}, {$set: {authors: [ObjectId('680a8d1e851b17b5a0ae814e')]}})
+
+db.books.aggregate([{$lookup: {from: 'authors', localField: 'authors', foreignField: '_id', as: 'creators'}}])
