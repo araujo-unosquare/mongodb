@@ -1,0 +1,14 @@
+use contactData
+
+//insertOne
+db.persons.insertOne({name:'Carlos', age: 31, hobbies: ['cooking']})
+
+
+//insertMany
+db.persons.insertMany([{name:'Carlos', age: 31, hobbies: ['cooking']}, {name:'Orlando', age: 31, hobbies: ['cooking']}])
+
+// ordered: allows to continue if one element fails
+db.hobbies.insertMany([{_id: "sports", name: 'sports'}, {_id: "cooking", name: 'cooking'}], {ordered: false})
+
+
+db.persons.insertOne({name:'Carlos', age: 31, hobbies: ['cooking']},{writeConcern: {w:1, j: true}})

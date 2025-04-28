@@ -1,0 +1,5 @@
+db.movieStarts.find({'meta.rating': {$gt: 9.2}, 'meta.runtime': {$lt: 100}})
+
+db.movieStarts.find({genre: {$in: ["drama", "action"]}})
+
+db.movieStarts.find({$expr: {$gt:["$visitors", "$expectedVisitors"]}})

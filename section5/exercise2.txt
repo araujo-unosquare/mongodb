@@ -1,0 +1,5 @@
+db.movieStarts.find({genre: {$size: 2}})
+
+db.movieStarts.find({'meta.aired': 2018})
+
+db.movieStarts.find({ratings: {$elemMatch: {$gt: 8, $lt: 10}}})

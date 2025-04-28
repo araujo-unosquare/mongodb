@@ -1,0 +1,78 @@
+db.movies.findOne()
+
+// filter
+db.movies.find({name: 'The Last Ship'})
+
+//comparison operator
+db.movies.find({runtime: {$gt: 60}})
+db.movies.find({runtime: {$lt: 60}})
+
+//embedded fields and arrays
+db.movies.find({'rating.average': {$gt: 7}})
+//includes drama
+db.movies.find({genres: 'Drama'})
+//only drama
+db.movies.find({genres: ['Drama']})
+
+// in . this is not a range, it finds either
+db.movies.find({runtime: {$in: [30, 60]}})
+// not in
+db.movies.find({runtime: {$min: [30, 60]}})
+
+//or
+db.movies.find({$or: [{'rating.average': {$lt: 5}},{ 'rating.average': {$gt: 9}}]})
+//nor
+db.movies.find({$nor: [{'rating.average': {$lt: 5}},{ 'rating.average': {$gt: 9}}]})
+
+//and, useful for same keys
+db.moviess.find({$and: [{genres: 'Drama', genres: 'Horror'}]})
+
+//element operators
+db.users.find({age: {$exists: true, $ne: null}})
+
+db.users.find({phone: {$type: "number"}})
+db.users.find({phone: {$type: ["number", "string"]}})
+
+//regex
+db.movies.find({summary: {$regex: /musical/}})
+
+//expr
+// where volume is greater than target
+db.sales.find({$expr: {$gt:["$volume", "$target"]}})
+
+// where volume is greater than target
+db.sales.find({$expr: {$gt:[{$cond: {if: {$gte: ["$volume", 190]}, then: {$subtract: ["$volume", 10]}, else: "$volume"}}]}})
+
+----------
+//arrays
+----------
+// search nested document in array with specific title
+db.users.find({'hobbies.title': 'Sports'})
+
+// size
+db.users.find({hobbies: {$size: 3}})
+
+//all
+db.movieStarts.find({genre: {$all: ['action', 'thriller']}})
+
+//ellemMathc
+db.users.find({hobbies: {$elemMatch: {title: "Sports, frequency: {$gte: 3}}}})
+
+---
+cursors
+------
+
+const dataCursor = db.movies.find()
+dataCursor.next()
+
+dataCursor.forEach(doc=> {printjson(doc)})
+
+// 1: ascending, -1: descending
+db.movies.find().sort({'rating.average': 1, runtime: -1})
+
+//skip & limit
+db.movies.find().skip(10).limit(100)
+
+//projection
+db.movies.find({}, {name: 1, genres: 1, runtime: 1, rating: 1, 'rating.average': 1, 'schedule.time: 1' })
+
