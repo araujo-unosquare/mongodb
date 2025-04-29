@@ -1,0 +1,56 @@
+------
+INDEXES
+-------
+
+Indexes support efficient execution of queries in MongoDB. Without indexes, MongoDB must scan every document in a collection to return query results. If an appropriate index exists for a query, MongoDB uses the index to limit the number of documents it must scan.
+
+Although indexes improve query performance, adding an index has negative performance impact for write operations. For collections with a high write-to-read ratio, indexes are expensive because each insert must also update any indexes.
+
+db.contacts.createIndex({'dob.age': 1})
+
+db.contacts.dropIndex({'dob.age': 1})
+
+db.contacts.createIndex({'dob.age': 1, gender: 1})
+
+db.contacts.find({'dob.age': 35}).sort({gender: 1})
+
+db.contacts.getIndexes()
+
+db.contacts.createIndex({email: 1}, {unique: true})
+
+// partial
+Partial indexes only index the documents in a collection that meet a specified filter expression. By indexing a subset of the documents in a collection, partial indexes have lower storage requirements and reduced performance costs for index creation and maintenance.
+
+db.contacts.createIndex({'dob.age':1}, {partialFilterExpression: {'dob.age': {$gt: 60}}})
+
+db.users.createIndex({email: 1}, {unique: true, partialFilterExpression: {email: {$exists: true}}})
+
+// TTL
+TTL indexes are special single-field indexes that MongoDB can use to automatically remove documents from a collection after a certain amount of time or at a specific clock time. 
+db.sessions.createIndex(
+   { "createdAt": 1 },
+   { expireAfterSeconds: 3600 }
+)
+
+// Covered Query
+A covered query is a query that can be satisfied entirely using an index and does not have to examine any documents.
+db.inventory.createIndex( { type: 1, item: 1 } )
+db.inventory.find(
+   { type: "food", item:/^c/ },
+   { item: 1, _id: 0 }
+)
+
+Multikey Indexes
+Multikey indexes collect and sort data from fields containing array values. Multikey indexes improve performance for queries on array fields.
+db.contacts.createIndex({'addresses.street': 1})
+
+Text index
+for long strings
+only one text index per collection
+db.products.createIndex({description: 'text'})
+db.products.find({$text: {$search: 'awesome'}})
+db.products.find({$text: {$search: 'awesome'}}, {score: {$meta: 'textScore'}}).sort({score:  {$meta: 'textScore'}})
+db.products.createIndex({title: 'text', description: 'text'})
+
+db.products.createIndex({title: 'text', description: 'text'}, {default_language: 'english', weights: {title: 1, description: 10}})
+db.products.find({$text: {$search: '',}})
