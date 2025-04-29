@@ -1,56 +1,70 @@
-------
-INDEXES
+-----
+UPDATE
 -------
+// $set
+db.users.updateOne({_id: ObjectId('680faa3c3726befe1be27dc9')}, {$set: {hobbies: [{title: 'Sports', frequency: 5}]}})
 
-Indexes support efficient execution of queries in MongoDB. Without indexes, MongoDB must scan every document in a collection to return query results. If an appropriate index exists for a query, MongoDB uses the index to limit the number of documents it must scan.
+db.users.updateMany({'hobbies.title': 'Sports'}, {$set: {isSporty: true}})
 
-Although indexes improve query performance, adding an index has negative performance impact for write operations. For collections with a high write-to-read ratio, indexes are expensive because each insert must also update any indexes.
+db.users.updateOne({_id: ObjectId('680faa3c3726befe1be27dc9')}, {$set: {age: 40, phone: '545564556'}})
 
-db.contacts.createIndex({'dob.age': 1})
 
-db.contacts.dropIndex({'dob.age': 1})
+//$inc
+db.users.updateOne({name: 'Manuel'}, {$inc: {age: 2}})
 
-db.contacts.createIndex({'dob.age': 1, gender: 1})
+db.users.updateOne({name: 'Manuel'}, {$inc: {age: 2}, $set: {isSporty: false}})
 
-db.contacts.find({'dob.age': 35}).sort({gender: 1})
+//$min Updates a specified field to a new value only if the new value is less than the current value.
+db.users.updateOne({name: 'Chris'}, {$min: {age: 35}})
 
-db.contacts.getIndexes()
+//$max Updates a specified field to a new value only if the new value is greater than the current value.
+db.users.updateOne({name: 'Chris'}, {$max: {age: 38}})
 
-db.contacts.createIndex({email: 1}, {unique: true})
+//$mul
+db.users.updateOne({name: 'Chris'}, {$mul: {age: 1.1}})
 
-// partial
-Partial indexes only index the documents in a collection that meet a specified filter expression. By indexing a subset of the documents in a collection, partial indexes have lower storage requirements and reduced performance costs for index creation and maintenance.
+//$unset
+db.users.updateMany({isSporty: true}, {$unset: {phone: ''}} )
 
-db.contacts.createIndex({'dob.age':1}, {partialFilterExpression: {'dob.age': {$gt: 60}}})
+//$rename
+db.users.updateMany({}, {$rename: {age: 'totalAge'}})
 
-db.users.createIndex({email: 1}, {unique: true, partialFilterExpression: {email: {$exists: true}}})
+//upsert
+db.users.updateOne({name: 'Maria'}, 
+    {$set: {
+    age: 29, hobbies: [{title: 'Sports', frequency: 3}], isSporty: true}}, 
+    {upsert:true})
 
-// TTL
-TTL indexes are special single-field indexes that MongoDB can use to automatically remove documents from a collection after a certain amount of time or at a specific clock time. 
-db.sessions.createIndex(
-   { "createdAt": 1 },
-   { expireAfterSeconds: 3600 }
-)
+----
+arrays
+----
+// update one element of array that matches condition
+db.users.updateMany(
+    {hobbies: {$elemMatch: {title: 'Sports', frequency: {$gte: 3}}}}, 
+    {$set: {'hobbies.$.highFrequency': true}})
 
-// Covered Query
-A covered query is a query that can be satisfied entirely using an index and does not have to examine any documents.
-db.inventory.createIndex( { type: 1, item: 1 } )
-db.inventory.find(
-   { type: "food", item:/^c/ },
-   { item: 1, _id: 0 }
-)
+//update all elements of array
+db.users.updateMany({totalAge: {$gt: 30}}, {$inc: {'hobbies.$[].frequency': -1}})
 
-Multikey Indexes
-Multikey indexes collect and sort data from fields containing array values. Multikey indexes improve performance for queries on array fields.
-db.contacts.createIndex({'addresses.street': 1})
+//update all elements that match
+db.users.updateMany(
+    {'hobbies.frequency': {$gt: 2}}, 
+    {$set: {'hobbies.$[el].goodFrequency': true}}, 
+    {arrayFilters: [{'el.frequency': {$gt: 2}}]})
 
-Text index
-for long strings
-only one text index per collection
-db.products.createIndex({description: 'text'})
-db.products.find({$text: {$search: 'awesome'}})
-db.products.find({$text: {$search: 'awesome'}}, {score: {$meta: 'textScore'}}).sort({score:  {$meta: 'textScore'}})
-db.products.createIndex({title: 'text', description: 'text'})
 
-db.products.createIndex({title: 'text', description: 'text'}, {default_language: 'english', weights: {title: 1, description: 10}})
-db.products.find({$text: {$search: '',}})
+//adding element
+db.users.updateOne({name: 'Maria'}, {$push: {hobbies: {title: 'Cooking', frequency: 2}}})
+
+db.users.updateOne({name: 'Maria'}, 
+{$push: {hobbies: { $each:[{title: 'Cars', frequency: 2}, {title: 'Movies', frequency: 2}], 
+$sort: {frequency: -1} }}})
+
+//remove
+db.users.updateOne({name: 'Maria'}, {$pull: {hobbies: {title: 'Cars'}}})
+
+//remove last (change 1/-1 for last or first)
+db.users.updateOne({name: 'Chris'}, {$pop: {hobbies: 1}})
+
+//addToSet - won't push duplicates
+db.users.updateOne({name: 'Maria'}, {$addToSet: {hobbies: {title: 'Cooking', frequency: 2}}})

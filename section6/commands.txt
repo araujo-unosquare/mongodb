@@ -1,70 +1,14 @@
------
-UPDATE
--------
-// $set
-db.users.updateOne({_id: ObjectId('680faa3c3726befe1be27dc9')}, {$set: {hobbies: [{title: 'Sports', frequency: 5}]}})
+use contactData
 
-db.users.updateMany({'hobbies.title': 'Sports'}, {$set: {isSporty: true}})
-
-db.users.updateOne({_id: ObjectId('680faa3c3726befe1be27dc9')}, {$set: {age: 40, phone: '545564556'}})
+//insertOne
+db.persons.insertOne({name:'Carlos', age: 31, hobbies: ['cooking']})
 
 
-//$inc
-db.users.updateOne({name: 'Manuel'}, {$inc: {age: 2}})
+//insertMany
+db.persons.insertMany([{name:'Carlos', age: 31, hobbies: ['cooking']}, {name:'Orlando', age: 31, hobbies: ['cooking']}])
 
-db.users.updateOne({name: 'Manuel'}, {$inc: {age: 2}, $set: {isSporty: false}})
-
-//$min Updates a specified field to a new value only if the new value is less than the current value.
-db.users.updateOne({name: 'Chris'}, {$min: {age: 35}})
-
-//$max Updates a specified field to a new value only if the new value is greater than the current value.
-db.users.updateOne({name: 'Chris'}, {$max: {age: 38}})
-
-//$mul
-db.users.updateOne({name: 'Chris'}, {$mul: {age: 1.1}})
-
-//$unset
-db.users.updateMany({isSporty: true}, {$unset: {phone: ''}} )
-
-//$rename
-db.users.updateMany({}, {$rename: {age: 'totalAge'}})
-
-//upsert
-db.users.updateOne({name: 'Maria'}, 
-    {$set: {
-    age: 29, hobbies: [{title: 'Sports', frequency: 3}], isSporty: true}}, 
-    {upsert:true})
-
-----
-arrays
-----
-// update one element of array that matches condition
-db.users.updateMany(
-    {hobbies: {$elemMatch: {title: 'Sports', frequency: {$gte: 3}}}}, 
-    {$set: {'hobbies.$.highFrequency': true}})
-
-//update all elements of array
-db.users.updateMany({totalAge: {$gt: 30}}, {$inc: {'hobbies.$[].frequency': -1}})
-
-//update all elements that match
-db.users.updateMany(
-    {'hobbies.frequency': {$gt: 2}}, 
-    {$set: {'hobbies.$[el].goodFrequency': true}}, 
-    {arrayFilters: [{'el.frequency': {$gt: 2}}]})
+// ordered: allows to continue if one element fails
+db.hobbies.insertMany([{_id: "sports", name: 'sports'}, {_id: "cooking", name: 'cooking'}], {ordered: false})
 
 
-//adding element
-db.users.updateOne({name: 'Maria'}, {$push: {hobbies: {title: 'Cooking', frequency: 2}}})
-
-db.users.updateOne({name: 'Maria'}, 
-{$push: {hobbies: { $each:[{title: 'Cars', frequency: 2}, {title: 'Movies', frequency: 2}], 
-$sort: {frequency: -1} }}})
-
-//remove
-db.users.updateOne({name: 'Maria'}, {$pull: {hobbies: {title: 'Cars'}}})
-
-//remove last (change 1/-1 for last or first)
-db.users.updateOne({name: 'Chris'}, {$pop: {hobbies: 1}})
-
-//addToSet - won't push duplicates
-db.users.updateOne({name: 'Maria'}, {$addToSet: {hobbies: {title: 'Cooking', frequency: 2}}})
+db.persons.insertOne({name:'Carlos', age: 31, hobbies: ['cooking']},{writeConcern: {w:1, j: true}})

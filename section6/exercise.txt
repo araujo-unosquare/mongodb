@@ -1,8 +1,25 @@
-db.sports.insertMany([
-    {title: 'Soccer', requiresTeam: true},
-    {title: 'Hockey', requiresTeam: true}
-])
+db.companies.insertOne({
+    "name": "Test Company",
+    "email": "test@test.com",
+    "employees": 50
+  })
 
-db.sports.updateMany({requiresTeam: true}, {$set: {minPlayers: 10}})
 
-db.sports.updateMany({requiresTeam: true}, {$inc: {minPlayers: 10}})
+  db.companies.insertMany([
+  {
+    "name": "Test Company",
+    "email": "test@test.com",
+    "employees": 50
+  },
+  {
+    "name": "Fruits Company",
+    "email": "fruits@test.com",
+    "employees": 39
+  },
+  {
+    "name": "Books Company",
+    "email": "books@test.com",
+    "employees": 204
+  }
+]
+)

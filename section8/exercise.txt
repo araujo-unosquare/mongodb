@@ -1,0 +1,8 @@
+db.sports.insertMany([
+    {title: 'Soccer', requiresTeam: true},
+    {title: 'Hockey', requiresTeam: true}
+])
+
+db.sports.updateMany({requiresTeam: true}, {$set: {minPlayers: 10}})
+
+db.sports.updateMany({requiresTeam: true}, {$inc: {minPlayers: 10}})
