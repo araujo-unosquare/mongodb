@@ -1,0 +1,33 @@
+Geospatial Queries
+MongoDB supports query operations on geospatial data. This section introduces MongoDB's geospatial features.
+
+To specify GeoJSON data, use an embedded document with:
+
+a field named type that specifies the GeoJSON object type, and
+
+a field named coordinates that specifies the object's coordinates.
+
+db.places.insertOne({name: 'home', location: {type: 'Point', coordinates: [-89.5886464, 21.0025331]}})
+
+Geospatial Indexes
+Geospatial indexes support queries on data stored as GeoJSON objects or legacy coordinate pairs. You can use geospatial indexes to improve performance for queries on geospatial data or to run certain geospatial queries.
+
+db.places.createIndex({location: '2dsphere'})
+
+db.places.find({location: {$near: {$geometry: {type: 'Point',
+    coordinates: [
+      -89.5886196,
+      21.003412
+    ]}, $maxDistance: 500, $minDistance: 10}}})
+
+
+$geoWithin
+Selects geometries within a bounding GeoJSON geometry. The 2dsphere and 2d indexes support $geoWithin.
+db.places.find({location: $geoWithin: {$geometry: {type: 'Polygon', coordinates: [[p1,p2,p3,p4,p1]]}}})
+
+$geoIntersects
+Selects geometries that intersect with a GeoJSON geometry. The 2dsphere index supports $geoIntersects.
+db.areas.find({area: {$geoIntersects: {$geometry: {type: 'Point', coordinates: []}}}})
+
+//within radius (distance in radians)
+db.places.find({location: {$geoWithin: {$centerSphere:[[-89.5886464, 21.0025331], 1/6378.1]}}})
