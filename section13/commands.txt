@@ -1,0 +1,22 @@
+----
+NUMERIC DATA
+-----
+
+db.persons.insertOne({age: NumberInt(29)})
+
+db.companies.insertOne({valuation: NumberLong('5000000000')})
+
+db.accounts.insertOne({amount: NumberInt('10)})
+db.accounts.updateOne({}, {$inc: {amount: NumberInt('10')}})
+
+db.accounts.insertOne({amount: NumberLong('100000000000)})
+db.accounts.updateOne({}, {$inc: {amount: NumberLong('10')}})
+
+db.science.insertOne({a: 0.3, b: 0.1})
+db.science.aggregate([{$project: {result: {$subtract: ['$a','$b']}}}]) /// 0.199999999998
+
+db.science.insertOne({a: NumberDecimal('0.3'), b: NumberDecimal('0.1')})
+db.science.aggregate([{$project: {result: {$subtract: ['$a','$b']}}}]) ///NumberDecimal('0.2')
+
+db.science.updateOne({}, {$inc: {a: 0.1}}) // 0.400000000
+db.science.updateOne({}, {$inc: {a: NumberDecimal('0.1')}}) 
