@@ -1,0 +1,337 @@
+-----
+AGGREGATES
+-------
+Aggregation operations process multiple documents and return computed results. You can use aggregation operations to:
+Group values from multiple documents together.
+Perform operations on the grouped data to return a single result.
+Analyze data changes over time.
+
+db.persons.aggregate([
+    {$match: {gender: 'female}}
+])
+
+db.persons.aggregate([
+    { $match: { gender: 'female' } },
+    { $group: { _id: { state: "$location.state" }, totalPersons: { $sum: 1 } } },
+    { $sort: {totalPersons: -1} }
+]);
+
+----
+project
+----
+
+db.persons.aggregate([
+  {
+    $project: {
+      _id: 0,
+      gender: 1,
+      fullName: {
+        $concat: [
+          { $toUpper: { $substrCP: ["$name.first", 0, 1] } },
+          {
+            $substrCP: [
+              "$name.first",
+              1,
+              { $subtract: [{ $strLenCP: "$name.first" }, 1] },
+            ],
+          },
+          " ",
+          { $toUpper: "$name.last" },
+        ],
+      },
+    },
+  },
+]);
+
+db.persons.aggregate([
+  {
+    $project: {
+      _id: 0,
+      name: 1,
+      email: 1,
+      location: {
+        type: "Point",
+        coordinates: [
+          {
+            $convert: {
+              input: "$location.coordinates.longitude",
+              to: "double",
+              onError: 0.0,
+              onNull: 0.0,
+            },
+          },
+          {
+            $convert: {
+              input: "$location.coordinates.latitude",
+              to: "double",
+              onError: 0.0,
+              onNull: 0.0,
+            },
+          },
+        ],
+      },
+    },
+  },
+  {
+    $project: {
+      gender: 1,
+      name: 1,
+      email: 1,
+      location: 1,
+      fullName: {
+        $concat: [
+          { $toUpper: { $substrCP: ["$name.first", 0, 1] } },
+          {
+            $substrCP: [
+              "$name.first",
+              1,
+              { $subtract: [{ $strLenCP: "$name.first" }, 1] },
+            ],
+          },
+          " ",
+          { $toUpper: "$name.last" },
+        ],
+      },
+    },
+  },
+]);
+
+db.persons.aggregate([
+  {
+    $project: {
+      _id: 0,
+      name: 1,
+      email: 1,
+      birthdate: { $toDate: "$dob.date"},
+      age: '$dob.age',
+      location: {
+        type: "Point",
+        coordinates: [
+          {
+            $convert: {
+              input: "$location.coordinates.longitude",
+              to: "double",
+              onError: 0.0,
+              onNull: 0.0,
+            },
+          },
+          {
+            $convert: {
+              input: "$location.coordinates.latitude",
+              to: "double",
+              onError: 0.0,
+              onNull: 0.0,
+            },
+          },
+        ],
+      },
+    },
+  },
+  {
+    $project: {
+      gender: 1,
+      name: 1,
+      email: 1,
+      location: 1,
+      birthdate: 1,
+      age: 1,
+      fullName: {
+        $concat: [
+          { $toUpper: { $substrCP: ["$name.first", 0, 1] } },
+          {
+            $substrCP: [
+              "$name.first",
+              1,
+              { $subtract: [{ $strLenCP: "$name.first" }, 1] },
+            ],
+          },
+          " ",
+          { $toUpper: "$name.last" },
+        ],
+      },
+    },
+  },
+]);
+
+
+$unwind
+Deconstructs an array field from the input documents to output a document for each element. Each output document is the input document with the value of the array field replaced by the element.
+
+$addToSet
+The $addToSet operator adds a value to an array unless the value is already present, in which case $addToSet does nothing to that array.
+
+db.friends.aggregate([
+    { $unwind: '$hobbies'},
+    { $group: { _id: {age: '$age'}, allHobbies: {$addToSet: '$hobbies'} } }
+])
+
+$slice
+The $slice projection operator specifies the number of elements in an array to return in the query result.
+
+db.friends.aggregate([
+  {$project: { _id: 0, examScore: {$slice: ['$examScores', 1]}}}
+]);
+
+
+db.friends.aggregate([
+  {$project: { _id: 0, numScores: {$size: '$examScores'}}}
+]);
+
+$filter
+Selects a subset of an array to return based on the specified condition. Returns an array with only those elements that match the condition. The returned elements are in the original order.
+
+db.friends.aggregate([
+  {$project: { _id: 0, scores: {$filter: {input: '$examScores', as: 'sc', cond: {$gt:['$$sc.score', 60]}}}}}
+]);
+
+
+db.friends.aggregate([
+  { $unwind: "$examScores" },
+  { $project: { _id: 1, name: 1, age: 1, score: "$examScores.score" } },
+  { $sort: { score: -1 } },
+  {
+    $group: {
+      _id: "$_id",
+      name: { $first: "$name" },
+      maxScore: { $max: "$score" },
+    },
+  },
+  { $sort: { maxScore: -1 } },
+]);
+
+
+$bucket
+Categorizes incoming documents into groups, called buckets, based on a specified expression and bucket boundaries and outputs a document per each bucket. Each output document contains an _id field whose value specifies the inclusive lower bound of the bucket. The output option specifies the fields included in each output document.
+
+db.persons.aggregate([
+  {
+    $bucket: {
+      groupBy: "$dob.age",
+      boundaries: [18, 30, 40, 50, 60],
+      output: {
+        avgAge: { $avg: "$dob.age" },
+        numPersons: { $sum: 1 },
+      },
+    },
+  },
+]);
+
+
+$bucketAuto
+Categorizes incoming documents into a specific number of groups, called buckets, based on a specified expression. Bucket boundaries are automatically determined in an attempt to evenly distribute the documents into the specified number of buckets.
+
+db.persons.aggregate([
+  {
+    $bucketAuto: {
+      groupBy: "$dob.age",
+      buckets: 5,
+      output: {
+        avgAge: { $avg: "$dob.age" },
+        numPersons: { $sum: 1 },
+      },
+    },
+  },
+]);
+
+
+
+db.persons.aggregate([
+  {
+    $project: {
+      _id: 0,
+      name: {
+        $concat: ["$name.first", " ", "$name.last"],
+      },
+      birthdate: { $toDate: "$dob.date" },
+    },
+  },
+  { $sort: { birthdate: 1 } },
+  { $limit: 10 },
+]);
+
+$out
+Takes the documents returned by the aggregation pipeline and writes them to a specified collection. You can specify the output database.
+The $out stage must be the last stage in the pipeline. The $out operator lets the aggregation framework return result sets of any size.
+
+db.persons.aggregate([
+    {
+      $project: {
+        _id: 0,
+        name: 1,
+        email: 1,
+        birthdate: { $toDate: '$dob.date' },
+        age: "$dob.age",
+        location: {
+          type: 'Point',
+          coordinates: [
+            {
+              $convert: {
+                input: '$location.coordinates.longitude',
+                to: 'double',
+                onError: 0.0,
+                onNull: 0.0
+              }
+            },
+            {
+              $convert: {
+                input: '$location.coordinates.latitude',
+                to: 'double',
+                onError: 0.0,
+                onNull: 0.0
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      $project: {
+        gender: 1,
+        email: 1,
+        location: 1,
+        birthdate: 1,
+        age: 1,
+        fullName: {
+          $concat: [
+            { $toUpper: { $substrCP: ['$name.first', 0, 1] } },
+            {
+              $substrCP: [
+                '$name.first',
+                1,
+                { $subtract: [{ $strLenCP: '$name.first' }, 1] }
+              ]
+            },
+            ' ',
+            { $toUpper: { $substrCP: ['$name.last', 0, 1] } },
+            {
+              $substrCP: [
+                '$name.last',
+                1,
+                { $subtract: [{ $strLenCP: '$name.last' }, 1] }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    { $out: "transformedPersons" }
+  ]).pretty();
+
+
+$geoNear
+Outputs documents in order of nearest to farthest from a specified point.
+
+db.transformedPersons.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [-18.4, -42.8]
+        },
+        maxDistance: 1000000,
+        num: 10,
+        query: { age: { $gt: 30 } },
+        distanceField: "distance"
+      }
+    }
+  ]).pretty();
